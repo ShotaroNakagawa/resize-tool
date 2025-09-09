@@ -3,50 +3,60 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>一括画像リサイズ & 圧縮 + 比率切り替え（ブラウザで完結）</title>
-<meta name="description" content="ドラッグ&ドロップで画像を一括リサイズ・圧縮。アスペクト比維持 / 16:9 / 9:16 の切り替えに対応。JPEG/PNG/WebPに変換。">
+<title>一括画像リサイズ & 圧縮｜比率切替＋再変換対応</title>
+<meta name="description" content="ドラッグ&ドロップで画像を一括リサイズ・圧縮。アスペクト比維持 / 16:9 / 9:16 切替、再変換ボタンで設定変更後も即再処理。完全クライアントサイド。">
 <style>
-  :root { --bg:#0f1220; --card:#161a2b; --text:#e8ecf1; --muted:#a8b3c7; --accent:#7cd1ff; --accent-2:#8affc1; --danger:#ff6b6b; }
+  :root { --bg:#0f1220; --card:#161a2b; --text:#e8ecf1; --muted:#a8b3c7;
+          --accent:#7cd1ff; --accent-2:#8affc1; --danger:#ff6b6b;
+          --keep:#8a8fa3; --r169:#6fb4ff; --r916:#6fffc3; }
   *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; background:linear-gradient(180deg,#0f1220,#0d1020 60%,#0f1220); color:var(--text);
+  html,body{ margin:0; padding:0;
+    background:linear-gradient(180deg,#0f1220,#0d1020 60%,#0f1220); color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif;}
   header{ padding:28px 16px 8px; text-align:center; }
   header h1{ font-size:22px; margin:0 0 6px; letter-spacing:.03em; }
   header p{ margin:0; color:var(--muted); font-size:13px; }
   .container{ max-width:980px; margin:0 auto; padding:16px; }
-  .panel{ background:linear-gradient(180deg, rgba(124,209,255,.06), rgba(138,255,193,.06)); border:1px solid rgba(124,209,255,.2);
-    border-radius:14px; padding:16px; margin-bottom:14px; }
+  .panel{ background:linear-gradient(180deg, rgba(124,209,255,.06), rgba(138,255,193,.06));
+    border:1px solid rgba(124,209,255,.2); border-radius:14px; padding:16px; margin-bottom:14px; }
   .grid{ display:grid; gap:14px; grid-template-columns:repeat(12,1fr); }
   .col-12{ grid-column:span 12; } .col-6{ grid-column:span 6; } .col-4{ grid-column:span 4; }
   @media (max-width:760px){ .col-6,.col-4{ grid-column:span 12; } }
   label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
-  input[type="number"], select{ width:100%; background:var(--card); color:var(--text); border:1px solid rgba(124,209,255,.25);
-    padding:10px 12px; border-radius:10px; outline:none; }
+  input[type="number"], select{ width:100%; background:var(--card); color:var(--text);
+    border:1px solid rgba(124,209,255,.25); padding:10px 12px; border-radius:10px; outline:none; }
   input[type="range"]{ width:100%; }
   .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .btn{ background:linear-gradient(180deg, rgba(124,209,255,.18), rgba(124,209,255,.12)); color:var(--text); border:1px solid rgba(124,209,255,.35);
-    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; letter-spacing:.02em; text-decoration:none; display:inline-block; }
+  .btn{ background:linear-gradient(180deg, rgba(124,209,255,.18), rgba(124,209,255,.12));
+    color:var(--text); border:1px solid rgba(124,209,255,.35);
+    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; letter-spacing:.02em;
+    text-decoration:none; display:inline-block; }
   .btn:hover{ border-color:rgba(138,255,193,.6); }
   .btn.danger{ border-color:rgba(255,107,107,.5); background:rgba(255,107,107,.15); }
   .hint{ font-size:12px; color:var(--muted); }
-  .dropzone{ border:1.5px dashed rgba(124,209,255,.4); background:rgba(12,16,34,.8); border-radius:14px; padding:18px; text-align:center; transition:.15s border-color ease; }
+  .dropzone{ border:1.5px dashed rgba(124,209,255,.4); background:rgba(12,16,34,.8);
+    border-radius:14px; padding:18px; text-align:center; transition:.15s border-color ease; }
   .dropzone.dragover{ border-color:var(--accent-2); background:rgba(14,24,50,.9); }
   .gallery{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); }
   .card{ background:var(--card); border:1px solid rgba(124,209,255,.2); border-radius:12px; overflow:hidden; }
+  .card.keep{ border-color:rgba(138,143,163,.6); }
+  .card.r169{ border-color:rgba(111,180,255,.75); }
+  .card.r916{ border-color:rgba(111,255,195,.75); }
   .card img{ width:100%; display:block; background:#0b0e1a; }
   .card .meta{ padding:10px; font-size:12px; color:var(--muted); }
-  .badge{ display:inline-block; padding:2px 8px; font-size:11px; border-radius:99px; border:1px solid rgba(124,209,255,.35); color:var(--text); }
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:2px 8px; font-size:11px;
+    border-radius:99px; border:1px solid rgba(124,209,255,.35); color:var(--text); }
+  .badge.keep{ border-color:var(--keep); }
+  .badge.r169{ border-color:var(--r169); }
+  .badge.r916{ border-color:var(--r916); }
   .footer{ text-align:center; font-size:12px; color:var(--muted); padding:16px 8px 32px; }
   .progress{ height:8px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
   .progress>div{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .2s ease; }
-  .ratio-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .radio{ display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.04); border:1px solid rgba(124,209,255,.2); border-radius:999px; padding:6px 10px; }
-  .radio input{ accent-color:#4cc2ff; }
 </style>
 </head>
 <body>
 <header>
-  <h1>一括画像リサイズ & 圧縮 <small style="font-size:12px; color:var(--muted);">＋ 比率切り替え</small></h1>
+  <h1>一括画像リサイズ & 圧縮 <small style="font-size:12px; color:var(--muted);">｜ 比率切替 + 再変換</small></h1>
   <p>ドラッグ&ドロップで画像をまとめて変換。ブラウザ内で完結（外部送信なし）。</p>
 </header>
 
@@ -75,10 +85,10 @@
       </div>
       <div class="col-12">
         <label>比率設定</label>
-        <div class="ratio-row">
-          <label class="radio"><input type="radio" name="ratio" value="keep" checked> アスペクト比を維持</label>
-          <label class="radio"><input type="radio" name="ratio" value="16:9"> 16:9 固定（トリミング）</label>
-          <label class="radio"><input type="radio" name="ratio" value="9:16"> 9:16 固定（トリミング）</label>
+        <div class="row">
+          <label class="badge keep"><input type="radio" name="ratio" value="keep" checked> 比率維持</label>
+          <label class="badge r169"><input type="radio" name="ratio" value="16:9"> 16:9 固定（トリミング）</label>
+          <label class="badge r916"><input type="radio" name="ratio" value="9:16"> 9:16 固定（トリミング）</label>
         </div>
         <div class="hint" style="margin-top:6px;">※ 固定比率は余白を作らず、<b>余分をトリミング</b>して合わせます。</div>
       </div>
@@ -98,7 +108,10 @@
 
   <div class="panel">
     <div class="row" style="justify-content: space-between;">
-      <div class="hint">読み込み → 自動変換 → 下のギャラリーに結果が並びます。</div>
+      <div class="row" style="gap:8px; align-items:center;">
+        <button class="btn" id="reprocessBtn">再変換する</button>
+        <span class="hint">※ 設定を変えたら押すと、読み込んだ画像をまとめて再処理します。</span>
+      </div>
       <button class="btn" id="downloadAllBtn">すべてダウンロード</button>
     </div>
     <div class="progress" style="margin-top:10px;"><div id="bar"></div></div>
@@ -125,14 +138,17 @@
   const dropzone = document.getElementById('dropzone');
   const gallery = document.getElementById('gallery');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const reprocessBtn = document.getElementById('reprocessBtn');
   const bar = document.getElementById('bar');
   const ratioRadios = document.querySelectorAll('input[name="ratio"]');
 
-  let results = []; // {blob, name, w, h, size}
+  // 元画像の保持（再変換用）
+  let originals = []; // [{file: File, name: string}]
+  let results = [];   // [{blob, name, w, h, size, mode}]
 
   qualityEl.addEventListener('input', ()=> qLabel.textContent = qualityEl.value);
   pickBtn.addEventListener('click', ()=> fileInput.click());
-  clearBtn.addEventListener('click', ()=> { results = []; gallery.innerHTML=''; bar.style.width='0%'; });
+  clearBtn.addEventListener('click', ()=> { originals=[]; results=[]; gallery.innerHTML=''; bar.style.width='0%'; });
   fileInput.addEventListener('change', (e)=> handleFiles(e.target.files));
 
   ['dragenter','dragover'].forEach(ev=> dropzone.addEventListener(ev, e=>{
@@ -146,15 +162,20 @@
 
   function getSelectedRatio(){
     const v = Array.from(ratioRadios).find(r=>r.checked)?.value || 'keep';
-    if (v === 'keep') return {mode:'keep'};
-    if (v === '16:9') return {mode:'fixed', ar: 16/9};
-    if (v === '9:16') return {mode:'fixed', ar: 9/16};
-    return {mode:'keep'};
+    if (v === 'keep') return {mode:'keep', label:'比率維持'};
+    if (v === '16:9') return {mode:'fixed', ar: 16/9, label:'16:9 固定'};
+    if (v === '9:16') return {mode:'fixed', ar: 9/16, label:'9:16 固定'};
+    return {mode:'keep', label:'比率維持'};
   }
 
   async function handleFiles(fileList){
     const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
     if (!files.length) return;
+    originals.push(...files.map(f => ({file:f, name:f.name})));
+    await processAndRenderAll(files);
+  }
+
+  async function processAndRenderAll(files){
     const total = files.length;
     let done = 0;
     for (const f of files){
@@ -165,6 +186,16 @@
       finally{ done++; bar.style.width = Math.round(done/total*100)+'%'; }
     }
   }
+
+  reprocessBtn.addEventListener('click', async ()=>{
+    if (!originals.length) return;
+    // 画面をクリアして再処理
+    results = [];
+    gallery.innerHTML = '';
+    bar.style.width = '0%';
+    const files = originals.map(o => o.file);
+    await processAndRenderAll(files);
+  });
 
   function loadImageFromFile(file){
     return new Promise((resolve, reject)=>{
@@ -184,41 +215,38 @@
 
     let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
     let targetW, targetH;
+    let modeClass = 'keep'; // for UI border color
+    let ratioLabel = '比率維持';
 
     if (ratioSetting.mode === 'keep'){
-      // そのまま縮小（拡大はしない）
       const scale = Math.min(maxW / img.width, maxH / img.height, 1);
       targetW = Math.round(img.width * scale);
       targetH = Math.round(img.height * scale);
+      modeClass = 'keep'; ratioLabel = '比率維持';
     } else {
-      // 固定比率にトリミングしてから、maxW/maxH の制約内で出力
       const targetAR = ratioSetting.ar; // 16/9 or 9/16
       const srcAR = img.width / img.height;
-
       if (srcAR > targetAR){
-        // 横が広い → 左右をカット
         const newW = Math.round(img.height * targetAR);
-        srcX = Math.floor((img.width - newW) / 2);
-        srcW = newW;
+        srcX = Math.floor((img.width - newW) / 2); srcW = newW;
       } else if (srcAR < targetAR){
-        // 縦が長い → 上下をカット
         const newH = Math.round(img.width / targetAR);
-        srcY = Math.floor((img.height - newH) / 2);
-        srcH = newH;
+        srcY = Math.floor((img.height - newH) / 2); srcH = newH;
       }
-      // 目的の比率で、maxW/maxH に収まるようにサイズを決定
       const scaleByW = maxW / srcW;
       const scaleByH = maxH / srcH;
       const scale = Math.min(scaleByW, scaleByH, 1);
       targetW = Math.round(srcW * scale);
       targetH = Math.round(srcH * scale);
+      // decide class & label
+      modeClass = (Math.abs(targetAR - 16/9) < Math.abs(targetAR - 9/16)) ? 'r169' : 'r916';
+      ratioLabel = (modeClass === 'r169') ? '16:9 固定' : '9:16 固定';
     }
 
     const canvas = document.createElement('canvas');
     canvas.width = targetW; canvas.height = targetH;
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
 
     const blob = await new Promise(resolve => {
@@ -231,17 +259,19 @@
     const ext = fmt === 'image/png' ? 'png' : (fmt === 'image/webp' ? 'webp' : 'jpg');
     const name = `${base}-${targetW}x${targetH}.${ext}`;
 
-    return { blob, name, w: targetW, h: targetH, size: blob ? blob.size : 0 };
+    return { blob, name, w: targetW, h: targetH, size: blob ? blob.size : 0, mode: modeClass, ratioLabel };
   }
 
-  function addCard({blob, name, w, h, size}){
+  function addCard({blob, name, w, h, size, mode}){
     const url = URL.createObjectURL(blob);
-    const card = document.createElement('div'); card.className='card';
+    const card = document.createElement('div'); card.className='card ' + (mode||'keep');
+    const ratioBadgeClass = mode || 'keep';
+    const ratioText = (mode==='r169') ? '16:9 固定' : (mode==='r916') ? '9:16 固定' : '比率維持';
     card.innerHTML = `
       <img src="${url}" alt="${name}" />
       <div class="meta">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <span class="badge">${w}×${h}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="badge ${ratioBadgeClass}">${w}×${h} ・ ${ratioText}</span>
           <a class="btn" download="${name}" href="${url}">ダウンロード</a>
         </div>
         <div class="hint" style="margin-top:6px;">${name} ・ ${formatBytes(size)}</div>
