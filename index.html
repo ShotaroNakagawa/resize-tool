@@ -3,102 +3,84 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>かんたん一括画像リサイズ & WebP圧縮（ブラウザで完結）</title>
-<meta name="description" content="ドラッグ&ドロップで画像を一括リサイズ・圧縮。JPEG/PNG/WebPに変換。インストール不要・無料・ブラウザで完結。">
+<title>一括画像リサイズ & 圧縮 + 比率切り替え（ブラウザで完結）</title>
+<meta name="description" content="ドラッグ&ドロップで画像を一括リサイズ・圧縮。アスペクト比維持 / 16:9 / 9:16 の切り替えに対応。JPEG/PNG/WebPに変換。">
 <style>
-  :root {
-    --bg: #0f1220;
-    --card: #161a2b;
-    --text: #e8ecf1;
-    --muted: #a8b3c7;
-    --accent: #7cd1ff;
-    --accent-2: #8affc1;
-    --danger: #ff6b6b;
-    --ok: #9dff9d;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    background: linear-gradient(180deg, #0f1220, #0d1020 60%, #0f1220);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
-  }
-  header { padding: 28px 16px 8px; text-align: center; }
-  header h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: .03em; }
-  header p { margin: 0; color: var(--muted); font-size: 13px; }
-  .container { max-width: 980px; margin: 0 auto; padding: 16px; }
-  .panel {
-    background: linear-gradient(180deg, rgba(124,209,255,.06), rgba(138,255,193,.06));
-    border: 1px solid rgba(124,209,255,.2);
-    border-radius: 14px;
-    padding: 16px; margin-bottom: 14px;
-  }
-  .grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
-  .col-12 { grid-column: span 12; } .col-6 { grid-column: span 6; }
-  @media (max-width: 760px) { .col-6 { grid-column: span 12; } }
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  input[type="number"], select {
-    width: 100%; background: var(--card); color: var(--text);
-    border: 1px solid rgba(124,209,255,.25);
-    padding: 10px 12px; border-radius: 10px; outline: none;
-  }
-  input[type="range"] { width: 100%; }
-  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .btn {
-    background: linear-gradient(180deg, rgba(124,209,255,.18), rgba(124,209,255,.12));
-    color: var(--text); border: 1px solid rgba(124,209,255,.35);
-    padding: 10px 14px; border-radius: 10px; cursor: pointer;
-    font-weight: 600; letter-spacing: .02em;
-    text-decoration: none; display: inline-block;
-  }
-  .btn:hover { border-color: rgba(138,255,193,.6); }
-  .btn.danger { border-color: rgba(255,107,107,.5); background: rgba(255,107,107,.15); }
-  .hint { font-size: 12px; color: var(--muted); }
-  .dropzone {
-    border: 1.5px dashed rgba(124,209,255,.4);
-    background: rgba(12, 16, 34, .8);
-    border-radius: 14px; padding: 18px; text-align: center;
-    transition: .15s border-color ease;
-  }
-  .dropzone.dragover { border-color: var(--accent-2); background: rgba(14, 24, 50, .9); }
-  .gallery { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  .card { background: var(--card); border: 1px solid rgba(124,209,255,.2); border-radius: 12px; overflow: hidden; }
-  .card img { width: 100%; display: block; background: #0b0e1a; }
-  .card .meta { padding: 10px; font-size: 12px; color: var(--muted); }
-  .badge { display: inline-block; padding: 2px 8px; font-size: 11px; border-radius: 99px; border: 1px solid rgba(124,209,255,.35); color: var(--text); }
-  .footer { text-align: center; font-size: 12px; color: var(--muted); padding: 16px 8px 32px; }
-  .progress { height: 8px; border-radius: 99px; background: rgba(255,255,255,.06); overflow: hidden; }
-  .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .2s ease; }
+  :root { --bg:#0f1220; --card:#161a2b; --text:#e8ecf1; --muted:#a8b3c7; --accent:#7cd1ff; --accent-2:#8affc1; --danger:#ff6b6b; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:linear-gradient(180deg,#0f1220,#0d1020 60%,#0f1220); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif;}
+  header{ padding:28px 16px 8px; text-align:center; }
+  header h1{ font-size:22px; margin:0 0 6px; letter-spacing:.03em; }
+  header p{ margin:0; color:var(--muted); font-size:13px; }
+  .container{ max-width:980px; margin:0 auto; padding:16px; }
+  .panel{ background:linear-gradient(180deg, rgba(124,209,255,.06), rgba(138,255,193,.06)); border:1px solid rgba(124,209,255,.2);
+    border-radius:14px; padding:16px; margin-bottom:14px; }
+  .grid{ display:grid; gap:14px; grid-template-columns:repeat(12,1fr); }
+  .col-12{ grid-column:span 12; } .col-6{ grid-column:span 6; } .col-4{ grid-column:span 4; }
+  @media (max-width:760px){ .col-6,.col-4{ grid-column:span 12; } }
+  label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+  input[type="number"], select{ width:100%; background:var(--card); color:var(--text); border:1px solid rgba(124,209,255,.25);
+    padding:10px 12px; border-radius:10px; outline:none; }
+  input[type="range"]{ width:100%; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn{ background:linear-gradient(180deg, rgba(124,209,255,.18), rgba(124,209,255,.12)); color:var(--text); border:1px solid rgba(124,209,255,.35);
+    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; letter-spacing:.02em; text-decoration:none; display:inline-block; }
+  .btn:hover{ border-color:rgba(138,255,193,.6); }
+  .btn.danger{ border-color:rgba(255,107,107,.5); background:rgba(255,107,107,.15); }
+  .hint{ font-size:12px; color:var(--muted); }
+  .dropzone{ border:1.5px dashed rgba(124,209,255,.4); background:rgba(12,16,34,.8); border-radius:14px; padding:18px; text-align:center; transition:.15s border-color ease; }
+  .dropzone.dragover{ border-color:var(--accent-2); background:rgba(14,24,50,.9); }
+  .gallery{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); }
+  .card{ background:var(--card); border:1px solid rgba(124,209,255,.2); border-radius:12px; overflow:hidden; }
+  .card img{ width:100%; display:block; background:#0b0e1a; }
+  .card .meta{ padding:10px; font-size:12px; color:var(--muted); }
+  .badge{ display:inline-block; padding:2px 8px; font-size:11px; border-radius:99px; border:1px solid rgba(124,209,255,.35); color:var(--text); }
+  .footer{ text-align:center; font-size:12px; color:var(--muted); padding:16px 8px 32px; }
+  .progress{ height:8px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
+  .progress>div{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .2s ease; }
+  .ratio-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .radio{ display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.04); border:1px solid rgba(124,209,255,.2); border-radius:999px; padding:6px 10px; }
+  .radio input{ accent-color:#4cc2ff; }
 </style>
 </head>
 <body>
 <header>
-  <h1>かんたん一括画像リサイズ & WebP圧縮</h1>
-  <p>ドラッグ&ドロップで画像をまとめて変換。インストール不要・無料・安全（ローカル処理のみ）。</p>
+  <h1>一括画像リサイズ & 圧縮 <small style="font-size:12px; color:var(--muted);">＋ 比率切り替え</small></h1>
+  <p>ドラッグ&ドロップで画像をまとめて変換。ブラウザ内で完結（外部送信なし）。</p>
 </header>
 
 <div class="container">
   <div class="panel">
     <div class="grid">
-      <div class="col-6">
+      <div class="col-4">
         <label>最大幅（px）</label>
         <input type="number" id="maxWidth" value="1080" min="64" step="1">
       </div>
-      <div class="col-6">
+      <div class="col-4">
         <label>最大高（px）</label>
         <input type="number" id="maxHeight" value="1920" min="64" step="1">
       </div>
-      <div class="col-6">
+      <div class="col-4">
         <label>出力フォーマット</label>
         <select id="format">
-          <option value="image/webp">WebP（推奨・小さい）</option>
+          <option value="image/webp">WebP（小さい）</option>
           <option value="image/jpeg">JPEG</option>
-          <option value="image/png">PNG（非可逆圧縮なし）</option>
+          <option value="image/png">PNG</option>
         </select>
       </div>
-      <div class="col-6">
+      <div class="col-12">
         <label>画質（JPEG/WebPのみ） <span id="qLabel" class="hint">0.8</span></label>
         <input type="range" id="quality" min="0.1" max="1" step="0.05" value="0.8">
+      </div>
+      <div class="col-12">
+        <label>比率設定</label>
+        <div class="ratio-row">
+          <label class="radio"><input type="radio" name="ratio" value="keep" checked> アスペクト比を維持</label>
+          <label class="radio"><input type="radio" name="ratio" value="16:9"> 16:9 固定（トリミング）</label>
+          <label class="radio"><input type="radio" name="ratio" value="9:16"> 9:16 固定（トリミング）</label>
+        </div>
+        <div class="hint" style="margin-top:6px;">※ 固定比率は余白を作らず、<b>余分をトリミング</b>して合わせます。</div>
       </div>
       <div class="col-12 row">
         <input type="file" id="fileInput" multiple accept="image/*" style="display:none;" />
@@ -144,107 +126,117 @@
   const gallery = document.getElementById('gallery');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
   const bar = document.getElementById('bar');
+  const ratioRadios = document.querySelectorAll('input[name="ratio"]');
 
   let results = []; // {blob, name, w, h, size}
 
   qualityEl.addEventListener('input', ()=> qLabel.textContent = qualityEl.value);
-
   pickBtn.addEventListener('click', ()=> fileInput.click());
-  clearBtn.addEventListener('click', ()=> {
-    results = [];
-    gallery.innerHTML = '';
-    bar.style.width = '0%';
-  });
-
+  clearBtn.addEventListener('click', ()=> { results = []; gallery.innerHTML=''; bar.style.width='0%'; });
   fileInput.addEventListener('change', (e)=> handleFiles(e.target.files));
 
-  ;['dragenter','dragover'].forEach(ev=> dropzone.addEventListener(ev, e=>{
-    e.preventDefault(); e.stopPropagation();
-    dropzone.classList.add('dragover');
+  ['dragenter','dragover'].forEach(ev=> dropzone.addEventListener(ev, e=>{
+    e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover');
   }));
-  ;['dragleave','drop'].forEach(ev=> dropzone.addEventListener(ev, e=>{
+  ['dragleave','drop'].forEach(ev=> dropzone.addEventListener(ev, e=>{
     e.preventDefault(); e.stopPropagation();
-    if (ev === 'drop') {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      handleFiles(files);
-    }
+    if (ev === 'drop') handleFiles(e.dataTransfer.files);
     dropzone.classList.remove('dragover');
   }));
 
-  async function handleFiles(fileList) {
+  function getSelectedRatio(){
+    const v = Array.from(ratioRadios).find(r=>r.checked)?.value || 'keep';
+    if (v === 'keep') return {mode:'keep'};
+    if (v === '16:9') return {mode:'fixed', ar: 16/9};
+    if (v === '9:16') return {mode:'fixed', ar: 9/16};
+    return {mode:'keep'};
+  }
+
+  async function handleFiles(fileList){
     const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
     if (!files.length) return;
     const total = files.length;
     let done = 0;
-    for (const f of files) {
-      try {
-        const out = await processImageFile(f);
-        results.push(out);
-        addCard(out);
-      } catch(err) {
-        console.error('convert error', err);
-      } finally {
-        done++;
-        bar.style.width = Math.round(done/total*100) + '%';
-      }
+    for (const f of files){
+      try{
+        const out = await processImageFile(f, getSelectedRatio());
+        results.push(out); addCard(out);
+      }catch(err){ console.error('convert error', err); }
+      finally{ done++; bar.style.width = Math.round(done/total*100)+'%'; }
     }
   }
 
-  function loadImageFromFile(file) {
+  function loadImageFromFile(file){
     return new Promise((resolve, reject)=>{
       const url = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = ()=> {
-        URL.revokeObjectURL(url);
-        resolve(img);
-      };
-      img.onerror = reject;
-      img.src = url;
+      img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = reject; img.src = url;
     });
   }
 
-  async function processImageFile(file) {
+  async function processImageFile(file, ratioSetting){
     const img = await loadImageFromFile(file);
     const maxW = Math.max(64, parseInt(maxWidthEl.value || '1080', 10));
     const maxH = Math.max(64, parseInt(maxHeightEl.value || '1920', 10));
     const fmt = formatEl.value;
     const q = parseFloat(qualityEl.value || '0.8');
 
-    // リサイズ比率（アスペクト維持）
-    let {width: w, height: h} = img;
-    const scale = Math.min(maxW / w, maxH / h, 1);
-    const outW = Math.round(w * scale);
-    const outH = Math.round(h * scale);
+    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+    let targetW, targetH;
+
+    if (ratioSetting.mode === 'keep'){
+      // そのまま縮小（拡大はしない）
+      const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+      targetW = Math.round(img.width * scale);
+      targetH = Math.round(img.height * scale);
+    } else {
+      // 固定比率にトリミングしてから、maxW/maxH の制約内で出力
+      const targetAR = ratioSetting.ar; // 16/9 or 9/16
+      const srcAR = img.width / img.height;
+
+      if (srcAR > targetAR){
+        // 横が広い → 左右をカット
+        const newW = Math.round(img.height * targetAR);
+        srcX = Math.floor((img.width - newW) / 2);
+        srcW = newW;
+      } else if (srcAR < targetAR){
+        // 縦が長い → 上下をカット
+        const newH = Math.round(img.width / targetAR);
+        srcY = Math.floor((img.height - newH) / 2);
+        srcH = newH;
+      }
+      // 目的の比率で、maxW/maxH に収まるようにサイズを決定
+      const scaleByW = maxW / srcW;
+      const scaleByH = maxH / srcH;
+      const scale = Math.min(scaleByW, scaleByH, 1);
+      targetW = Math.round(srcW * scale);
+      targetH = Math.round(srcH * scale);
+    }
 
     const canvas = document.createElement('canvas');
-    canvas.width = outW; canvas.height = outH;
+    canvas.width = targetW; canvas.height = targetH;
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, 0, 0, outW, outH);
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
 
     const blob = await new Promise(resolve => {
-      if (fmt === 'image/png') {
-        canvas.toBlob(resolve, 'image/png');
-      } else if (fmt === 'image/webp') {
-        canvas.toBlob(resolve, 'image/webp', q);
-      } else {
-        canvas.toBlob(resolve, 'image/jpeg', q);
-      }
+      if (fmt === 'image/png') canvas.toBlob(resolve, 'image/png');
+      else if (fmt === 'image/webp') canvas.toBlob(resolve, 'image/webp', q);
+      else canvas.toBlob(resolve, 'image/jpeg', q);
     });
 
-    const nameBase = (file.name || 'image').replace(/\.[^.]+$/, '');
+    const base = (file.name || 'image').replace(/\.[^.]+$/, '');
     const ext = fmt === 'image/png' ? 'png' : (fmt === 'image/webp' ? 'webp' : 'jpg');
-    const outName = `${nameBase}-${outW}x${outH}.${ext}`;
+    const name = `${base}-${targetW}x${targetH}.${ext}`;
 
-    return { blob, name: outName, w: outW, h: outH, size: blob ? blob.size : 0 };
+    return { blob, name, w: targetW, h: targetH, size: blob ? blob.size : 0 };
   }
 
-  function addCard({blob, name, w, h, size}) {
+  function addCard({blob, name, w, h, size}){
     const url = URL.createObjectURL(blob);
-    const card = document.createElement('div');
-    card.className = 'card';
+    const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
       <img src="${url}" alt="${name}" />
       <div class="meta">
@@ -253,30 +245,22 @@
           <a class="btn" download="${name}" href="${url}">ダウンロード</a>
         </div>
         <div class="hint" style="margin-top:6px;">${name} ・ ${formatBytes(size)}</div>
-      </div>
-    `;
+      </div>`;
     gallery.prepend(card);
   }
 
   function formatBytes(bytes){
-    if (!bytes && bytes !== 0) return '-';
-    const k = 1024;
-    const sizes = ['B','KB','MB','GB'];
-    const i = Math.floor(Math.log(bytes)/Math.log(k));
-    return (bytes/Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+    if (bytes == null) return '-';
+    const k=1024, sizes=['B','KB','MB','GB']; const i=Math.floor(Math.log(bytes)/Math.log(k));
+    return (bytes/Math.pow(k,i)).toFixed(2)+' '+sizes[i];
   }
 
   downloadAllBtn.addEventListener('click', async ()=>{
     if (!results.length) return;
-    for (const r of results) {
-      const a = document.createElement('a');
-      const url = URL.createObjectURL(r.blob);
-      a.href = url; a.download = r.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      await new Promise(res=> setTimeout(res, 80));
-      URL.revokeObjectURL(url);
+    for (const r of results){
+      const a=document.createElement('a'); const url=URL.createObjectURL(r.blob);
+      a.href=url; a.download=r.name; document.body.appendChild(a); a.click(); a.remove();
+      await new Promise(res=> setTimeout(res, 80)); URL.revokeObjectURL(url);
     }
   });
 })();
